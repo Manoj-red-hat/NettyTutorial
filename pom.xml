@@ -6,7 +6,11 @@
 
     <groupId>mk</groupId>
     <artifactId>NettyTutorial</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>pingpong</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,6 +18,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <NETTY.version>4.1.16.Final</NETTY.version>
         <junit.version>4.12</junit.version>
+        <log4j.version>1.2.17</log4j.version>
     </properties>
     <dependencies>
     <dependency>
@@ -26,6 +31,20 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/log4j/log4j -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
     </dependencies>
 
     

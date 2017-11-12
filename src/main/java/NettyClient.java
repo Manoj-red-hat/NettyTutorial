@@ -6,9 +6,17 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 
 /**
  * Created by Manoj Kumar on 11/8/2017.
@@ -17,18 +25,28 @@ import java.net.InetSocketAddress;
 
 public class NettyClient {
 
-    @ChannelHandler.Sharable
     class ClientHandler extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            ctx.write(Unpooled.copiedBuffer("Netty rocks!", CharsetUtil.UTF_8));
+
+            System.out.println(ctx.channel());
+            for(int i=0;i<4;i++){
+                ByteBuf heapBuff=Unpooled.buffer();
+                try  {
+                    BufferedReader inr = new BufferedReader(new InputStreamReader(System.in));
+                    heapBuff.writeCharSequence(inr.readLine(), Charset.defaultCharset());
+                    ctx.writeAndFlush(heapBuff);
+                    ctx.writeAndFlush("\r\n");
+                }catch (IOException e){}
+
+            }
         }
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ByteBuf in = (ByteBuf)msg;
-            System.out.println("Client received: " + ByteBufUtil
-                    .hexDump(in.readBytes(in.readableBytes())));
+                     System.out.println("Client received: " +msg);
         }
+
+
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx,Throwable cause)
@@ -38,9 +56,14 @@ public class NettyClient {
         }
     }
 
+
+    @ChannelHandler.Sharable
     class CustomChannelInitializer extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel socketChannel) throws Exception {
+            socketChannel.pipeline().addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+            socketChannel.pipeline().addLast("decoder", new StringDecoder());
+            socketChannel.pipeline().addLast("encoder", new StringEncoder());
             socketChannel.pipeline().addLast(new NettyClient.ClientHandler());
         }
     }
@@ -63,11 +86,14 @@ public class NettyClient {
 
         try {
             ChannelFuture f= b.connect().sync();
-            System.out.println(NettyClient.class.getName()+"Started and listening on"+f.channel().localAddress());
             f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
             group.shutdownGracefully();
         }
+    }
+
+    public static void main(String args[]) throws Exception {
+        new NettyClient("127.0.0.1",12312).start();
     }
 }

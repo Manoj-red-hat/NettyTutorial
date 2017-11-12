@@ -52,11 +52,6 @@ public class PlainEchoServerNIO2  {
 
         @Override
         public void completed(Integer result, ByteBuffer attachment) {
-
-            attachment.mark();
-            Charset charset = Charset.forName("US-ASCII");
-            System.out.println("data"+charset.decode(attachment).toString());
-            attachment.reset();
             attachment.flip();
             channel.write(attachment,attachment,new onWriteHandler(channel));
         }

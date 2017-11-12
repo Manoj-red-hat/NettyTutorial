@@ -4,6 +4,10 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
 import java.net.InetSocketAddress;
 
@@ -18,13 +22,14 @@ public class EchoServerNetty {
         @Override
         public void channelRead(ChannelHandlerContext ctx,Object obj){
             System.out.println("Server recieved msg " + obj);
-            ctx.write(obj);
+            ctx.writeAndFlush(obj);
+            ctx.writeAndFlush("\r\n");
         }
 
         @Override
         public void channelReadComplete(ChannelHandlerContext ctx) {
-            ctx.writeAndFlush(Unpooled.EMPTY_BUFFER)
-                    .addListener(ChannelFutureListener.CLOSE);
+           ctx.writeAndFlush(Unpooled.EMPTY_BUFFER);
+                    //.addListener(ChannelFutureListener.CLOSE);
         }
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx,Throwable cause) {
@@ -36,6 +41,9 @@ public class EchoServerNetty {
     class CustomChannelInitializer extends ChannelInitializer<SocketChannel>{
         @Override
         protected void initChannel(SocketChannel socketChannel) throws Exception {
+            socketChannel.pipeline().addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+            socketChannel.pipeline().addLast("decoder", new StringDecoder());
+            socketChannel.pipeline().addLast("encoder", new StringEncoder());
             socketChannel.pipeline().addLast(new EchoServerHandler());
         }
     }
@@ -53,7 +61,7 @@ public class EchoServerNetty {
                 .channel(NioServerSocketChannel.class)
                 .localAddress(new InetSocketAddress(port))
                 .childHandler(new CustomChannelInitializer());
-        ChannelFuture f= null;
+        ChannelFuture f;
         try {
             f = sb.bind().sync();
             System.out.println(EchoServerNetty.class.getName()+"Started and listening on"+f.channel().localAddress());

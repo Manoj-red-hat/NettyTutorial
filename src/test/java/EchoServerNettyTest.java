@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 public class EchoServerNettyTest {
     @Test
     public void start() throws Exception {
-        new EchoServerNetty(123).start();
+        new EchoServerNetty(12312).start();
     }
 
 }
