@@ -10,6 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>pingpong</module>
+        <module>Codec</module>
     </modules>
 
     <properties>
