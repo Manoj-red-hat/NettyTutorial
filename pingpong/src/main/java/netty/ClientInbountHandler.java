@@ -28,15 +28,17 @@ public class ClientInbountHandler implements ChannelInboundHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("Channel Active : "+ctx.toString());
-        new Thread(()->
+        Thread t = new Thread(()->
         {
             try {
                 BufferedReader inr = new BufferedReader(new InputStreamReader(System.in));
-                ctx.channel().writeAndFlush(inr.readLine());
+                ctx.channel().writeAndFlush((inr.readLine())+"\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        t.start();
+        t.join();
 
     }
 
